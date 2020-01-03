@@ -1,10 +1,11 @@
 {
   "name": "someone-github-stars",
   "displayName": "someone-github-stars",
-  "description": "获取github上某个用户关注的stars",
+  "description": "根据username获取github上该用户关注的stars列表（get someone github stars base on username）",
   "keywords": ["vscode", "plugin", "github", "stars"],
   "publisher": "mybells",
   "version": "0.0.1",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.41.0"
   },
