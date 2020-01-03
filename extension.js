@@ -1,81 +1,106 @@
 // The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-const vscode = require('vscode');
-const axios = require('axios');
-
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+const vscode=require('vscode');
+const axios=require('axios');
 
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-  let page = 1;
-  let name = '';
-  let data = {};
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
+  class Stars {
+    constructor(page, name) {
+      this.page = page
+      this.name = name
+      this.data={}
+    }
+    loading(text,getData) {
+      return vscode.window.withProgress({
+        title: `Searching for ${text}`,
+        location: vscode.ProgressLocation.Notification,
+        cancellable: true
+      }, (progress, token) => {
+        token.onCancellationRequested(() => {
+          return Promise.resolve()
+        })
+        return getData()
+      })
+    }
+    showInformationMessage(message) {
+      return vscode.window.showInformationMessage(message)
+    }
+    showErrorMessage(message) {
+      return vscode.window.showErrorMessage(message)
+    }
+    showTextDocument(options) {
+      return vscode.window.showTextDocument(options)
+    }
+    SnippetString(value) {
+      return new vscode.SnippetString(value)
+    }
+    showInputBox(options) {
+      return vscode.window.showInputBox(options)
+    }
+    getData() {
+      return axios.get(`https://api.github.com/users/${this.name}/starred?page=${this.page}&per_page=100`)
+    }
+  }
   console.log('Congratulations, your extension "someone-github-stars" is now active!');
 
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with  registerCommand
-  // The commandId parameter must match the command field in package.json
   let disposable = vscode.commands.registerCommand('extension.githubStars', function () {
-    // The code you place here will be executed every time your command is executed
-    // Display a message box to the user
-    vscode.window.showInputBox({ placeHolder: '输入要查询的Name' }).then(editor => {
+    let stars=new Stars(1,'');
+    stars.showInputBox({ placeHolder: 'Input Search Name' }).then(editor => {
       if (!editor) {
         return;
       }
-      name = editor;
-      vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left).show();
-      getData();
+      stars.name = editor;
+      stars.loading(editor,getData)
+      function getData() {
+        return new Promise((resolve, reject) =>{
+          get();
+          function get(){
+            stars.getData().then(res => {
+              let arr = res.data
+              if (arr && arr.length) {
+                arr.reduce((monitor, item) => {
+                  if (item.language) {
+                    if (monitor[item.language]) {
+                      monitor[item.language].push(item)
+                    } else {
+                      monitor[item.language] = [item]
+                    }
+                  } else {
+                    monitor["Other"] ? monitor["Other"].push(item) : (monitor["Other"] = [item])
+                  }
+                  return monitor
+                }, stars.data)
+                stars.page++
+                get()
+              } else {
+                if (!Object.keys(stars.data).length) {
+                  stars.showInformationMessage('No Data');
+                } else {
+                  let mdStr = `# ${stars.name} Stars\n`;
+                  for (let key in stars.data) {
+                    mdStr += `\n\n## ${key}`;
+                    let list = stars.data[key];
+                    for (let obj of list) {
+                      mdStr += `\n- [${obj.name}](${obj.html_url})`;
+                    }
+                  }
+                  stars.showTextDocument({ languageId: 'markdown', isUntitled: false }).then(e => {
+                    e.insertSnippet(stars.SnippetString(mdStr));
+                  })
+                  resolve();
+                }
+              }
+            }).catch(error => {
+              reject();
+              stars.showErrorMessage(error.message);
+            })
+          }
+        });
+      }
     })
   });
-
-  function getData() {
-    axios.get(`https://api.github.com/users/${name}/starred?page=${page}&per_page=100`).then(res => {
-      let arr = res.data
-      if (arr && arr.length) {
-        arr.reduce((monitor, item) => {
-          if (item.language) {
-            if (monitor[item.language]) {
-              monitor[item.language].push(item)
-            } else {
-              monitor[item.language] = [item]
-            }
-          } else {
-            monitor["Other"] ? monitor["Other"].push(item) : (monitor["Other"] = [item])
-          }
-          return monitor
-        }, data)
-        page++
-        getData()
-      } else {
-        if (!Object.keys(data).length) {
-          vscode.window.showInformationMessage('无数据！');
-        } else {
-          let mdStr = '';
-          for (let key in data) {
-            mdStr += `\n## ${key}`;
-            let list = data[key];
-            for (let obj of list) {
-              mdStr += `\n- [${obj.name}](${obj.html_url})`;
-            }
-          }
-          vscode.window.showTextDocument({ languageId: 'markdown', isUntitled: false }).then(e => {
-            e.insertSnippet(new vscode.SnippetString(mdStr));
-            page = 1;
-            name = "";
-            data = [];
-          })
-          // disposable.dispose();
-        }
-      }
-    }).catch(error => {
-      vscode.window.showErrorMessage(error.message);
-    })
-  }
   context.subscriptions.push(disposable);
 }
 exports.activate = activate;
