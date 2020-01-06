@@ -2,9 +2,14 @@
   "name": "someone-github-stars",
   "displayName": "someone-github-stars",
   "description": "根据username获取github上该用户关注的stars列表（get someone github stars base on username）",
-  "keywords": ["vscode", "plugin", "github", "stars"],
+  "keywords": [
+    "vscode",
+    "plugin",
+    "github",
+    "stars"
+  ],
   "publisher": "mybells",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.41.0"
@@ -46,8 +51,8 @@
     "url": "https://github.com/mybells/vscode-plugin-getsomeonestars/issues"
   },
   "repository": {
-      "type": "git",
-      "url": "https://github.com/mybells/vscode-plugin-getsomeonestars"
+    "type": "git",
+    "url": "https://github.com/mybells/vscode-plugin-getsomeonestars"
   },
   "homepage": "https://github.com/mybells/vscode-plugin-getsomeonestars/blob/master/README.md"
 }
