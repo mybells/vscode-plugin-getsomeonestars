@@ -7,3 +7,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 - Initial release
+
+## 0.0.3
+- fix: 修改请求接口头Accept不对导致请求不到数据的问题

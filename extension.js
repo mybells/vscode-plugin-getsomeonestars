@@ -40,7 +40,7 @@ function activate(context) {
       return vscode.window.showInputBox(options)
     }
     getData() {
-      return axios.get(`https://api.github.com/users/${this.name}/starred?page=${this.page}&per_page=100`)
+      return axios.get(`https://api.github.com/users/${this.name}/starred?page=${this.page}&per_page=100`,{headers: {Accept: 'application/vnd.github.v3+json'}})
     }
   }
   console.log('Congratulations, your extension "someone-github-stars" is now active!');
